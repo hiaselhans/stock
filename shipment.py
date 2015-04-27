@@ -366,14 +366,6 @@ class ShipmentIn(Workflow, ModelSQL, ModelView):
 
     @classmethod
     def create(cls, vlist):
-        pool = Pool()
-        Sequence = pool.get('ir.sequence')
-        Config = pool.get('stock.configuration')
-
-        vlist = [x.copy() for x in vlist]
-        config = Config(1)
-        for values in vlist:
-            values['code'] = Sequence.get_id(config.shipment_in_sequence)
         shipments = super(ShipmentIn, cls).create(vlist)
         cls._set_move_planned_date(shipments)
         return shipments
@@ -708,7 +700,13 @@ class ShipmentInReturn(Workflow, ModelSQL, ModelView):
     @classmethod
     @Workflow.transition('assigned')
     def assign(cls, shipments):
-        Move = Pool().get('stock.move')
+        pool = Pool()
+        Move = pool.get('stock.move')
+        Sequence = pool.get('ir.sequence')
+        Config = pool.get('stock.configuration')
+        config = Config(1)
+        for shipment in shipments:
+            shipment.code = Sequence.get_id(config.shipment_in_sequence)
         Move.assign([m for s in shipments for m in s.moves])
 
     @classmethod
