@@ -1092,8 +1092,10 @@ class ShipmentOut(Workflow, ModelSQL, ModelView):
         Sequence = pool.get('ir.sequence')
         config = Config(1)
         for shipment in shipments:
-            shipment.code = Sequence.get_id(config.shipment_out_sequence.id)
-            shipment.save()
+            if not shipment.code:
+                shipment.code = Sequence.get_id(config.shipment_out_sequence.id)
+                shipment.save()
+        # write = True ??
         cls._sync_inventory_to_outgoing(shipments, create=True, write=False)
 
     @classmethod
